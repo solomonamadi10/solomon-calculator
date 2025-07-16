@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Solomon Amadi Calculator</title>
+  <style>
+    /* History panel */
+    #historyPanel {
+      position: fixed;
+      right: 0; top: 80px;
+      width: 220px;
+      max-height: 70vh;
+      overflow-y: auto;
+      background: #f3e8ff;
+      border-left: 2px solid #7c3aed;
+      box-shadow: -2px 0 8px #e9d5ff;
+      padding: 12px 10px;
+      z-index: 100;
+      font-size: 15px;
+      display: none;
+    }
+    #historyPanel h3 { margin-top: 0; color: #7c3aed; }
+    #historyPanel ul { padding-left: 18px; }
+    #historyPanel li { margin-bottom: 6px; }
+    #historyBtn { position: fixed; right: 0; top: 40px; z-index: 101; background: #7c3aed; color: #fff; border: none; border-radius: 6px 0 0 6px; padding: 8px 16px; cursor: pointer; font-weight: bold; }
+    /* Memory buttons */
+    .memory-btns button { margin: 0 4px 8px 0; padding: 4px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #7c3aed; background: #ede9fe; color: #7c3aed; cursor: pointer; }
+    .memory-btns button.active { background: #7c3aed; color: #fff; }
+    /* Theme switcher */
+    /* Sound effect */
+    .sound-on { color: #7c3aed; font-weight: bold; }
+    /* Purple active tab */
+    .tabs button.active, .tabs button:focus {
+      background: #7c3aed !important;
+      color: #fff !important;
+      outline: none;
+    }
+    /* Yellow theme for Conversion tab */
+    #conversion.tab-content {
+      background: #fffde7 !important;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(255, 235, 59, 0.12);
+      border: 1px solid #ffe082;
+    }
+    #conversion h2 {
+      color: #fbc02d;
+    }
+    #conversion .subtab-bar button {
+      background: #ffe082;
+      color: #795548;
+      border: none;
+      border-radius: 6px 6px 0 0;
+      margin-right: 4px;
+      padding: 7px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #conversion .subtab-bar button.active, #conversion .subtab-bar button:hover {
+      background: #ffd54f;
+      color: #f57c00;
+    }
+    #conversion .subtab-content {
+      background: #fffde7;
+      border-radius: 0 0 8px 8px;
+      padding: 18px 10px 10px 10px;
+      color: #795548;
+      min-height: 120px;
+    }
+    /* Amortization tab green theme */
+    #amort input, #amort button {
+      border: 1px solid #a5d6a7;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+    }
+    #amort button {
+      background: #b2ffb2;
+      color: #006400;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #amort button:hover {
+      background: #66ff66;
+    }
+    #amort .tax-math, #amort #amortResult {
+      background: #f1f8e9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #33691e;
+      font-size: 15px;
+    }
+    /* Green theme for Tax and Amortization tabs */
+    #tax.tab-content, #amort.tab-content {
+      background: #e8f5e9 !important;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(56, 142, 60, 0.08);
+      border: 1px solid #a5d6a7;
+    }
+    #tax h2, #amort h2 {
+      color: #388e3c;
+    }
+    .tax-exempt-list input[type="text"] {
+      width: 120px;
+      margin-right: 6px;
+      border-radius: 4px;
+      border: 1px solid #a5d6a7;
+      padding: 4px 6px;
+    }
+    .tax-exempt-list input[type="number"] {
+      width: 90px;
+      border-radius: 4px;
+      border: 1px solid #a5d6a7;
+      padding: 4px 6px;
+    }
+    .tax-exempt-list button {
+      background: #43a047;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-left: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+    .tax-exempt-list button:hover {
+      background: #2e7031;
+    }
+    .tax-math, .tax-brackets, .tax-export {
+      margin-top: 12px;
+      background: #f1f8e9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #33691e;
+      font-size: 15px;
+    }
+    .tax-brackets {
+      background: #c8e6c9;
+      color: #1b5e20;
+      font-size: 14px;
+    }
+    .tax-export button {
+      background: #388e3c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      margin-right: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+    }
+    .tax-export button:hover {
+      background: #1b5e20;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: white;
+      transition: background-color 0.5s;
+    }
+    /* Scientific Calculator Custom Styles */
+    #scientific {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #f9fafd;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding-bottom: 30px;
+    }
+    #scientific h2 {
+      color: #003366;
+      margin-top: 20px;
+    }
+    #sciInput {
+      width: 90%;
+      margin: 20px auto 10px auto;
+      display: block;
+      border: 2px solid #0077cc;
+      border-radius: 8px;
+      background: #eaf4fb;
+      font-size: 20px;
+      padding: 12px 10px;
+      color: #003366;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    #sciKeypad {
+      max-width: 420px;
+      margin: 20px auto 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      justify-content: center;
+    }
+    #sciKeypad button {
+      height: 48px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #eaf4fb 0%, #cbe2f7 100%);
+      color: #003366;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+    #sciKeypad button:hover {
+      background: linear-gradient(180deg, #b3d8f7 0%, #eaf4fb 100%);
+      color: #0077cc;
+      transform: scale(1.07);
+    }
+    #sciKeypad button:active {
+      background: #a2cbe7;
+      color: #003366;
+    }
+    #sciKeypad button:last-child, #sciKeypad button:nth-last-child(2) {
+      background: #0077cc;
+      color: #fff;
+    }
+    #sciKeypad button:last-child:hover, #sciKeypad button:nth-last-child(2):hover {
+      background: #005fa3;
+      color: #fff;
+    }
+    #sciResult {
+      margin: 18px auto 0 auto;
+      width: 90%;
+      min-height: 32px;
+      background: #f1f8fc;
+      border-radius: 8px;
+      font-size: 20px;
+      color: #0077cc;
+      text-align: right;
+      padding: 10px 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      background-color: #003366;
+      color: white;
+    }
+    header img {
+      height: 50px;
+      vertical-align: middle;
+    }
+    .welcome {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #loginTime {
+      font-size: 12px;
+      color: #ccc;
+      margin-top: 5px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background-color: #f1f1f1;
+      padding: 10px;
+      max-width: 600px;
+      margin: 0 auto 20px auto;
+    }
+    .tabs button {
+      flex: 1 1 18%;
+      min-width: 100px;
+      max-width: 120px;
+      height: 100px;
+      margin: 1%;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #0077cc;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      box-sizing: border-box;
+    }
+    .tabs button:hover {
+      background: #005fa3;
+    }
+    .tab-content {
+      display: none;
+      padding: 20px;
+      background-color: white;
+    }
+    .active {
+      display: block;
+    }
+    .calculator-inputs input {
+      width: 60px;
+      margin: 5px;
+      padding: 5px;
+      font-size: 16px;
+    }
+    .operator {
+      display: block;
+      margin: 5px;
+    }
+    .expression-preview {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .theme-buttons button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body onload="showLoginTime()">
+  <header>
+    <img src="solomonamadi_logo.png" alt="Solomon Amadi Ltd Logo" />
+    <h1>Solomon Amadi Calculator</h1>
+    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:2px;">
+      <button id="ttsBtn" onclick="speakWelcome()" style="background:none;border:none;cursor:pointer;margin-right:8px;outline:none;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0077cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <span style="font-size:15px;color:#0077cc;font-weight:600;">Text to Speech</span>
+    </div>
+    <div class="welcome">You are welcome to calculate with Solomon... Let the counting begin</div>
+    <div id="loginTime"></div>
+  </header>
+
+  <div class="tabs">
+  <button onclick="openTab('formulas')">Formulas</button>
+  <button onclick="openTab('notebook')">Notebook</button>
+    <button id="historyBtn" onclick="toggleHistory()">History</button>
+    <button onclick="openTab('programmer')">Programmer</button>
+    <button onclick="openTab('graphing')">Graphing</button>
+    <button onclick="openTab('normal')">Normal</button>
+    <button onclick="openTab('scientific')">Scientific</button>
+    <button onclick="openTab('tax')">Tax</button>
+    <button onclick="openTab('amort')">Amortization</button>
+    <button onclick="openTab('spending')">Spending</button>
+    <button onclick="openTab('kids')">Kids</button>
+    <button onclick="openTab('conversion')">Conversion</button>
+    <button onclick="openTab('datecalc')">Date Calculations</button>
+    <button onclick="openTab('countdown')">Countdown</button>
+    <button onclick="openTab('about')">About</button>
+
+  </div>
+
+  <div id="normal" class="tab-content active">
+    <div class="memory-btns">
+      <button onclick="memoryAdd()">M+</button>
+      <button onclick="memorySubtract()">M-</button>
+      <button onclick="memoryRecall()">MR</button>
+      <button onclick="memoryClear()">MC</button>
+      <span id="soundToggle" onclick="toggleSound()" style="margin-left:10px;cursor:pointer;">🔊</span>
+    </div>
+    <h2>Normal Calculator</h2>
+    <div class="expression-preview" id="expressionDisplay">Expression:</div>
+    <div class="calculator-inputs" id="calcInputs">
+      <input type="number" onchange="updateExpression()" />
+      <select class="operator" onchange="updateExpression()">
+        <option>+</option><option>-</option><option>*</option><option>/</option>
+      </select>
+      <input type="number" onchange="updateExpression()" />
+    </div>
+    <button onclick="addMore()">+ Add More</button>
+    <button onclick="calculate()">= Calculate</button>
+    <div id="resultDisplay"></div>
+  </div>
+  <div id="scientific" class="tab-content">
+    <div style="margin-bottom:10px;">
+      <button onclick="sciBtn('Math.PI')">π</button>
+      <button onclick="sciBtn('Math.E')">e</button>
+      <button onclick="sciBtn('Math.LN2')">ln2</button>
+      <button onclick="sciBtn('Math.LN10')">ln10</button>
+      <button onclick="sciBtn('Math.LOG2E')">log2e</button>
+      <button onclick="sciBtn('Math.LOG10E')">log10e</button>
+    </div>
+    <h2>Scientific Calculator</h2>
+    <input type="text" id="sciInput" placeholder="e.g. sin(30)+log(10)" style="width:80%;padding:10px;font-size:16px;" readonly />
+    <div id="sciKeypad" style="max-width:400px;margin:20px auto;display:grid;grid-template-columns:repeat(5,60px);gap:8px;justify-content:center;">
+      <button onclick="sciBtn('7')">7</button>
+      <button onclick="sciBtn('8')">8</button>
+      <button onclick="sciBtn('9')">9</button>
+      <button onclick="sciBtn('(')">(</button>
+      <button onclick="sciBtn(')')">)</button>
+      <button onclick="sciBtn('4')">4</button>
+      <button onclick="sciBtn('5')">5</button>
+      <button onclick="sciBtn('6')">6</button>
+      <button onclick="sciBtn('^')">^</button>
+      <button onclick="sciBtn('sqrt(')">√</button>
+      <button onclick="sciBtn('1')">1</button>
+      <button onclick="sciBtn('2')">2</button>
+      <button onclick="sciBtn('3')">3</button>
+      <button onclick="sciBtn('/')">÷</button>
+      <button onclick="sciBtn('*')">×</button>
+      <button onclick="sciBtn('0')">0</button>
+      <button onclick="sciBtn('.')">.</button>
+      <button onclick="sciBtn('-')">-</button>
+      <button onclick="sciBtn('+')">+</button>
+      <button onclick="sciBtn('pi')">π</button>
+      <button onclick="sciBtn('sin(')">sin</button>
+      <button onclick="sciBtn('cos(')">cos</button>
+      <button onclick="sciBtn('tan(')">tan</button>
+      <button onclick="sciBtn('log(')">log</button>
+      <button onclick="sciBtn('ln(')">ln</button>
+      <button onclick="sciBtn('exp(')">exp</button>
+      <button onclick="sciBtn('e')">e</button>
+      <button onclick="clearSci()">C</button>
+      <button onclick="calculateScientific()">=</button>
+    </div>
+    <div id="sciResult"></div>
+  </div>
+
+  <div id="tax" class="tab-content">
+    <h2>Tax Calculator</h2>
+    <label>Filing Status:
+      <select id="filingStatus">
+        <option value="single">Single</option>
+        <option value="married_joint">Married Filing Jointly</option>
+        <option value="married_separate">Married Filing Separately</option>
+        <option value="head">Head of Household</option>
+      </select>
+    </label><br /><br />
+    <input type="number" id="income" placeholder="Annual Income" style="width:180px;" /><br />
+    <fieldset style="margin:12px 0 8px 0;padding:10px 8px 8px 8px;border:1px solid #ccc;border-radius:8px;max-width:350px;">
+      <legend style="font-weight:bold;">Deductions & Adjustments</legend>
+      <div id="deductionFields">
+        <input type="number" id="deduct_studentLoan" placeholder="Student loan interest paid" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_ira" placeholder="Traditional IRA contributions" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_hsa" placeholder="Health Savings Account (HSA) contributions" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_selfHealth" placeholder="Self-employed health insurance premiums" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_education" placeholder="Tuition and education expenses" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_mortgage" placeholder="Mortgage interest" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_propertyTax" placeholder="Property taxes paid" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_charity" placeholder="Charitable donations" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_medical" placeholder="Medical and dental expenses" style="width:90%;margin-bottom:4px;" /><br />
+        <input type="number" id="deduct_childcare" placeholder="Childcare expenses" style="width:90%;margin-bottom:4px;" /><br />
+      </div>
+      <button type="button" onclick="addCustomDeduction()" style="margin-top:6px;">+ Add More</button>
+    </fieldset>
+    <button onclick="calculateTax()" style="margin-left:10px;">Calculate Tax</button>
+    <div class="tax-math" id="taxMath" style="display:none;"></div>
+    <div class="tax-brackets" id="taxBrackets" style="display:none;"></div>
+    <div id="taxResult" style="margin-top:10px;"></div>
+    <div class="tax-export" id="taxExport" style="display:none;"></div>
+    <div id="taxChecklistPrompt" style="margin-top:18px;"></div>
+    <div id="taxChecklistForm" style="display:none;margin-top:18px;"></div>
+    <small><em>Disclaimer: This calculator attempts to give an accurate estimate. Please consult a tax professional if necessary.</em></small>
+  </div>
+
+  <div id="amort" class="tab-content">
+    <h2>Amortization Calculator</h2>
+    <input type="number" id="amortLoanAmount" placeholder="Loan Amount" style="width:180px;" /><br />
+    <input type="number" id="amortMonthlyPayment" placeholder="Monthly Payment (optional)" style="width:180px;" /><br />
+    <input type="date" id="amortDueDate" placeholder="Due Date (optional)" style="width:180px;" /><br />
+    <input type="number" id="amortTermMonths" placeholder="Terms (Months)" style="width:180px;" /><br />
+    <input type="number" id="amortInterestRate" placeholder="Annual Interest Rate (%)" style="width:180px;" /><br />
+    <button onclick="calculateAmort()">Calculate</button>
+    <div class="tax-math" id="amortBreakdown" style="display:none;"></div>
+    <div id="amortResult" style="margin-top:10px;"></div>
+    <div id="amortTotals" style="margin-top:10px;"></div>
+    <div id="amortExport" class="tax-export" style="display:none;"></div>
+  </div>
+
+  <div id="spending" class="tab-content">
+    <h2>Earnings & Spendings</h2>
+    <div style="display:flex;gap:30px;flex-wrap:wrap;justify-content:center;">
+      <div>
+        <h3 style="margin-bottom:6px;color:#10b981;">Earnings</h3>
+        <table id="earningsTable" style="border-collapse:collapse;width:260px;background:#e0f7fa;border-radius:8px;box-shadow:0 2px 8px #b2ebf2;">
+          <thead><tr style="background:#b2ebf2;"><th>#</th><th>Name</th><th>Amount</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="addEarningRow()" style="margin-top:6px;background:#10b981;color:#fff;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Add More</button>
+      </div>
+      <div>
+        <h3 style="margin-bottom:6px;color:#ef4444;">Spendings</h3>
+        <table id="spendingsTable" style="border-collapse:collapse;width:260px;background:#fff3e0;border-radius:8px;box-shadow:0 2px 8px #ffe0b2;">
+          <thead><tr style="background:#ffe0b2;"><th>#</th><th>Name</th><th>Amount</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="addSpendingRow()" style="margin-top:6px;background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Add More</button>
+      </div>
+    </div>
+    <button onclick="calculateEarningsSpendings()" style="margin:18px auto 0 auto;display:block;font-size:16px;background:#7c3aed;color:#fff;padding:8px 28px;border:none;border-radius:8px;box-shadow:0 2px 8px #e9d5ff;cursor:pointer;">Calculate</button>
+    <div id="earnSpendResult" style="margin-top:18px;font-size:18px;font-weight:bold;text-align:center;"></div>
+  </div>
+
+  <div id="kids" class="tab-content">
+    <h2>Kids Mode</h2>
+    <label>Choose Operation:
+      <select id="kidsOp">
+        <option value="add">Addition</option>
+        <option value="sub">Subtraction</option>
+        <option value="mul">Multiplication</option>
+        <option value="div">Division</option>
+      </select>
+    </label><br />
+    <input type="number" id="kidsNum1" placeholder="First Number" />
+    <input type="number" id="kidsNum2" placeholder="Second Number" />
+    <button onclick="runKidsMode()">Solve</button>
+    <div id="kidsResult"></div>
+    <canvas id="kidsCanvas" width="340" height="120" style="display:none;margin-top:10px;background:#f3f4f6;border-radius:10px;"></canvas>
+  </div>
+
+  <div id="conversion" class="tab-content" style="display:none;">
+    <h2>Conversion</h2>
+    <div class="subtab-bar">
+      <button onclick="showSubtab('angle')" id="subtab-angle">Angle</button>
+      <button onclick="showSubtab('pressure')" id="subtab-pressure">Pressure</button>
+      <button onclick="showSubtab('data')" id="subtab-data">Data</button>
+      <button onclick="showSubtab('power')" id="subtab-power">Power</button>
+      <button onclick="showSubtab('time')" id="subtab-time">Time</button>
+      <button onclick="showSubtab('speed')" id="subtab-speed">Speed</button>
+      <button onclick="showSubtab('area')" id="subtab-area">Area</button>
+      <button onclick="showSubtab('energy')" id="subtab-energy">Energy</button>
+      <button onclick="showSubtab('temperature')" id="subtab-temperature">Temperature</button>
+      <button onclick="showSubtab('weight')" id="subtab-weight">Weight & Mass</button>
+      <button onclick="showSubtab('length')" id="subtab-length">Length</button>
+    </div>
+    <div id="subtabContent" class="subtab-content"></div>
+  </div>
+
+  <div id="datecalc" class="tab-content" style="display:none;">
+    <h2>Date Calculations</h2>
+    <div><input type='date' id='date1' /> to <input type='date' id='date2' /> <button onclick='convertDate()'>Calculate</button></div>
+    <div id='dateResult' style='margin-top:10px;'></div>
+  </div>
+
+  <div id="programmer" class="tab-content" style="display:none;">
+    <h2>Programmer Calculator</h2>
+    <input type="number" id="progInput" placeholder="Enter Number" style="width:180px;" />
+    <select id="progType">
+      <option value="dec">Decimal</option>
+      <option value="bin">Binary</option>
+      <option value="oct">Octal</option>
+      <option value="hex">Hexadecimal</option>
+    </select>
+    <button onclick="convertProgrammer()">Convert</button>
+    <div id="progResult" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="graphing" class="tab-content" style="display:none;">
+    <h2>Graphing Calculator</h2>
+    <input type="text" id="graphExpr" placeholder="e.g. sin(x), x^2+3x-2" style="width:220px;" />
+    <button onclick="drawGraph()">Plot</button>
+    <label style="margin-left:10px;font-size:14px;">
+      <input type="checkbox" id="showGrid" onchange="drawGraph()"> Show Grid
+    </label>
+    <label style="margin-left:10px;font-size:14px;">
+      <input type="checkbox" id="multiGraph" onchange="drawGraph()"> Multi-Function
+    </label>
+    <canvas id="graphCanvas" width="400" height="250" style="background:#fff;border:1px solid #ccc;margin-top:10px;"></canvas>
+    <div id="graphError" style="color:red;"></div>
+    <div style="margin-top:8px;font-size:13px;color:#7c3aed;">Separate multiple functions with a comma (e.g. <b>sin(x), x^2</b>)</div>
+  </div>
+
+  <div id="countdown" class="tab-content">
+    <h2>Countdown Timer</h2>
+    <input type="number" id="countMinutes" placeholder="Enter time in minutes" />
+    <button onclick="startCountdown()">Start</button>
+    <div id="countdownDisplay"></div>
+  </div>
+
+  <div id="about" class="tab-content">
+    <h2>About</h2>
+    <div style="font-size:16px;max-width:600px;line-height:1.7;">
+      <b>Developer:</b> Solomon Amadi<br>
+      <b>Features:</b>
+      <ul>
+        <li>Normal, Scientific, Programmer, Graphing, Tax, Amortization, Spending, Kids, Conversion, Date Calculations, Countdown</li>
+        <li><b>Formulas:</b> View a list of popular formulas for quick reference.</li>
+        <li><b>Notebook:</b> Take notes, save, clear, and export your notes as TXT or PDF.</li>
+        <li>Text-to-speech for results and welcome message.</li>
+        <li>Modern, user-friendly interface.</li>
+      </ul>
+      <b>Contact:</b> thesolomonamadi@gmail.com<br>
+      <b>Copyright:</b> &copy; Solomon Amadi, All Rights Reserved
+    </div>
+  </div>
+
+
+  <div id="formulas" class="tab-content" style="display:none;">
+    <h2>Popular Formulas</h2>
+    <ul style="font-size:16px;line-height:1.7;max-width:600px;">
+      <li><b>Area of Circle:</b> A = πr²</li>
+      <li><b>Quadratic Formula:</b> x = [-b ± √(b²-4ac)] / 2a</li>
+      <li><b>Pythagoras Theorem:</b> a² + b² = c²</li>
+      <li><b>Simple Interest:</b> SI = (P × R × T) / 100</li>
+      <li><b>Compound Interest:</b> A = P(1 + r/n)<sup>nt</sup></li>
+      <li><b>Perimeter of Rectangle:</b> P = 2(l + w)</li>
+      <li><b>Volume of Sphere:</b> V = (4/3)πr³</li>
+      <li><b>Speed:</b> s = d / t</li>
+      <li><b>Ohm's Law:</b> V = IR</li>
+      <li><b>Einstein's Energy:</b> E = mc²</li>
+    </ul>
+  </div>
+
+  <div id="notebook" class="tab-content" style="display:none;background:#e8f5e9;min-height:220px;border-radius:12px;box-shadow:0 2px 12px #a5d6a7 inset;">
+    <h2 style="color:#388e3c;">Notebook</h2>
+    <textarea id="notebookArea" placeholder="Write your notes here..." style="width:98%;height:160px;border-radius:8px;border:1px solid #a5d6a7;padding:10px;font-size:16px;background:#f1f8e9;color:#33691e;"></textarea>
+    <div style="margin-top:8px;">
+      <button onclick="saveNotebook()" style="background:#43a047;color:#fff;border:none;padding:6px 18px;border-radius:6px;font-size:15px;">Save</button>
+      <button onclick="clearNotebook()" style="background:#e53935;color:#fff;border:none;padding:6px 18px;border-radius:6px;font-size:15px;margin-left:8px;">Clear</button>
+      <button onclick="exportNotebookTXT()" style="background:#388e3c;color:#fff;border:none;padding:6px 18px;border-radius:6px;font-size:15px;margin-left:8px;">Export TXT</button>
+      <button onclick="exportNotebookPDF()" style="background:#388e3c;color:#fff;border:none;padding:6px 18px;border-radius:6px;font-size:15px;margin-left:8px;">Export PDF</button>
+    </div>
+    <div id="notebookSaved" style="color:#388e3c;margin-top:8px;font-size:14px;display:none;">Notes saved!</div>
+  </div>
+<script>
+// --- Notebook Logic ---
+function saveNotebook() {
+  const val = document.getElementById('notebookArea').value;
+  localStorage.setItem('solomonamadi_notebook', val);
+  document.getElementById('notebookSaved').style.display = '';
+  setTimeout(()=>{document.getElementById('notebookSaved').style.display='none';}, 1500);
+}
+function clearNotebook() {
+  document.getElementById('notebookArea').value = '';
+  localStorage.removeItem('solomonamadi_notebook');
+  document.getElementById('notebookSaved').style.display = 'none';
+}
+function exportNotebookTXT() {
+  const text = document.getElementById('notebookArea').value;
+  const blob = new Blob([text], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'notebook.txt';
+  a.click();
+}
+function exportNotebookPDF() {
+  const text = document.getElementById('notebookArea').value;
+  const win = window.open('', '', 'width=700,height=900');
+  win.document.write('<html><head><title>Notebook PDF</title></head><body style="font-family:sans-serif;padding:30px;">');
+  win.document.write('<h2 style="color:#388e3c;">Notebook</h2>');
+  win.document.write('<pre style="font-size:16px;color:#33691e;">' + text.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])) + '</pre>');
+  win.document.write('</body></html>');
+  win.document.close();
+  win.print();
+}
+if (document.getElementById('notebookArea')) {
+  const saved = localStorage.getItem('solomonamadi_notebook');
+  if (saved) document.getElementById('notebookArea').value = saved;
+}
+</script>
+
+<script>
+// --- History Panel ---
+let calcHistory = [];
+function toggleHistory() {
+  const panel = document.getElementById('historyPanel');
+  if (!panel) {
+    const div = document.createElement('div');
+    div.id = 'historyPanel';
+    div.innerHTML = '<h3>History</h3><ul id="historyList"></ul>';
+    document.body.appendChild(div);
+    showHistory();
+    div.style.display = 'block';
+  } else {
+    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    if (panel.style.display === 'block') showHistory();
+  }
+}
+function addHistory(entry) {
+  calcHistory.unshift(entry);
+  if (calcHistory.length > 30) calcHistory.pop();
+  showHistory();
+}
+function showHistory() {
+  const list = document.getElementById('historyList');
+  if (!list) return;
+  list.innerHTML = calcHistory.map(e => `<li>${e}</li>`).join('');
+}
+// Normal Calculator logic
+function calculate() {
+  let inputs = document.querySelectorAll('#calcInputs input, #calcInputs select');
+  let expr = '';
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].tagName === 'SELECT') {
+      expr += ' ' + inputs[i].value + ' ';
+    } else {
+      expr += inputs[i].value;
+    }
+  }
+  // Only calculate if all number inputs are filled
+  let numInputs = document.querySelectorAll('#calcInputs input[type="number"]');
+  let allFilled = true;
+  for (let i = 0; i < numInputs.length; i++) {
+    if (numInputs[i].value === '' || isNaN(Number(numInputs[i].value))) {
+      allFilled = false;
+      break;
+    }
+  }
+  if (!allFilled) {
+    document.getElementById('resultDisplay').textContent = '';
+    return;
+  }
+  try {
+    let cleaned = expr.trim().replace(/\s+/g, '');
+    // Only allow numbers, operators, parentheses, decimal points
+    if (!cleaned || /[+\-*/]$/.test(cleaned) || /[^0-9+\-*/().]/.test(cleaned)) {
+      document.getElementById('resultDisplay').textContent = 'Invalid Expression';
+      speakText('Invalid Expression');
+      playSound('error');
+      return;
+    }
+    let result = eval(cleaned);
+    document.getElementById('resultDisplay').textContent = 'Result: ' + result;
+    addHistory(expr + ' = ' + result);
+    speakText('Result is ' + result);
+    playSound();
+  } catch (e) {
+    document.getElementById('resultDisplay').textContent = 'Invalid Expression';
+    speakText('Invalid Expression');
+    playSound('error');
+  }
+}
+// --- Memory Buttons ---
+let memory = 0;
+function memoryAdd() {
+  const res = document.getElementById('resultDisplay').textContent.match(/[-\d\.]+/g);
+  if (res) memory += parseFloat(res[0]);
+}
+function memorySubtract() {
+  const res = document.getElementById('resultDisplay').textContent.match(/[-\d\.]+/g);
+  if (res) memory -= parseFloat(res[0]);
+}
+function memoryRecall() {
+  document.getElementById('resultDisplay').textContent = 'Memory: ' + memory;
+}
+function memoryClear() { memory = 0; }
+// --- Sound Effects ---
+let soundOn = true;
+function playSound(type) {
+  if (!soundOn) return;
+  let ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let o = ctx.createOscillator();
+  let g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  if (type === 'error') o.frequency.value = 180;
+  else o.frequency.value = 440;
+  g.gain.value = 0.08;
+  o.type = 'sine';
+  o.start();
+  o.stop(ctx.currentTime + 0.15);
+}
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('soundToggle').classList.toggle('sound-on', soundOn);
+}
+// Conversion logic for each subtab
+function convertAngle() {
+  const v = parseFloat(document.getElementById('angleInput').value);
+  const t = document.getElementById('angleType').value;
+  let r = '';
+  if (t === 'degToRad') r = (v * Math.PI / 180).toFixed(6) + ' rad';
+  else if (t === 'radToDeg') r = (v * 180 / Math.PI).toFixed(6) + '°';
+  document.getElementById('angleResult').innerHTML = r;
+}
+function convertPressure() {
+  const v = parseFloat(document.getElementById('pressureInput').value);
+  const t = document.getElementById('pressureType').value;
+  let r = '';
+  if (t === 'paToAtm') r = (v / 101325).toFixed(6) + ' atm';
+  else if (t === 'atmToPa') r = (v * 101325).toFixed(2) + ' Pa';
+  else if (t === 'barToPsi') r = (v * 14.5038).toFixed(4) + ' psi';
+  else if (t === 'psiToBar') r = (v / 14.5038).toFixed(6) + ' bar';
+  document.getElementById('pressureResult').innerHTML = r;
+}
+function convertData() {
+  const v = parseFloat(document.getElementById('dataInput').value);
+  const t = document.getElementById('dataType').value;
+  let r = '';
+  if (t === 'kbToMb') r = (v / 1024).toFixed(6) + ' MB';
+  else if (t === 'mbToGb') r = (v / 1024).toFixed(6) + ' GB';
+  else if (t === 'gbToTb') r = (v / 1024).toFixed(6) + ' TB';
+  else if (t === 'tbToGb') r = (v * 1024).toFixed(2) + ' GB';
+  document.getElementById('dataResult').innerHTML = r;
+}
+function convertPower() {
+  const v = parseFloat(document.getElementById('powerInput').value);
+  const t = document.getElementById('powerType').value;
+  let r = '';
+  if (t === 'wToKw') r = (v / 1000).toFixed(6) + ' kW';
+  else if (t === 'kwToW') r = (v * 1000).toFixed(2) + ' W';
+  document.getElementById('powerResult').innerHTML = r;
+}
+function convertTime() {
+  const v = parseFloat(document.getElementById('timeInput').value);
+  const t = document.getElementById('timeType').value;
+  let r = '';
+  if (t === 'secToMin') r = (v / 60).toFixed(6) + ' min';
+  else if (t === 'minToHr') r = (v / 60).toFixed(6) + ' hr';
+  else if (t === 'hrToDay') r = (v / 24).toFixed(6) + ' days';
+  document.getElementById('timeResult').innerHTML = r;
+}
+function convertSpeed() {
+  const v = parseFloat(document.getElementById('speedInput').value);
+  const t = document.getElementById('speedType').value;
+  let r = '';
+  if (t === 'msToKmh') r = (v * 3.6).toFixed(6) + ' km/h';
+  else if (t === 'kmhToMs') r = (v / 3.6).toFixed(6) + ' m/s';
+  document.getElementById('speedResult').innerHTML = r;
+}
+function convertArea() {
+  const v = parseFloat(document.getElementById('areaInput').value);
+  const t = document.getElementById('areaType').value;
+  let r = '';
+  if (t === 'sqmToSqft') r = (v * 10.7639).toFixed(6) + ' ft²';
+  else if (t === 'sqftToSqm') r = (v / 10.7639).toFixed(6) + ' m²';
+  document.getElementById('areaResult').innerHTML = r;
+}
+function convertEnergy() {
+  const v = parseFloat(document.getElementById('energyInput').value);
+  const t = document.getElementById('energyType').value;
+  let r = '';
+  if (t === 'jToCal') r = (v / 4.184).toFixed(6) + ' cal';
+  else if (t === 'calToJ') r = (v * 4.184).toFixed(6) + ' J';
+  document.getElementById('energyResult').innerHTML = r;
+}
+function convertTemperature() {
+  const v = parseFloat(document.getElementById('tempInput').value);
+  const t = document.getElementById('tempType').value;
+  let r = '';
+  if (t === 'cToF') r = (v * 9/5 + 32).toFixed(2) + ' °F';
+  else if (t === 'fToC') r = ((v - 32) * 5/9).toFixed(2) + ' °C';
+  else if (t === 'cToK') r = (v + 273.15).toFixed(2) + ' K';
+  else if (t === 'kToC') r = (v - 273.15).toFixed(2) + ' °C';
+  document.getElementById('tempResult').innerHTML = r;
+}
+function convertWeight() {
+  const v = parseFloat(document.getElementById('weightInput').value);
+  const t = document.getElementById('weightType').value;
+  let r = '';
+  if (t === 'kgToLb') r = (v * 2.20462).toFixed(6) + ' lb';
+  else if (t === 'lbToKg') r = (v / 2.20462).toFixed(6) + ' kg';
+  else if (t === 'gToOz') r = (v / 28.3495).toFixed(6) + ' oz';
+  else if (t === 'ozToG') r = (v * 28.3495).toFixed(6) + ' g';
+  document.getElementById('weightResult').innerHTML = r;
+}
+function convertLength() {
+  const v = parseFloat(document.getElementById('lengthInput').value);
+  const t = document.getElementById('lengthType').value;
+  let r = '';
+  if (t === 'cmToInch') r = (v / 2.54).toFixed(6) + ' in';
+  else if (t === 'inchToCm') r = (v * 2.54).toFixed(6) + ' cm';
+  else if (t === 'mToFt') r = (v * 3.28084).toFixed(6) + ' ft';
+  else if (t === 'ftToM') r = (v / 3.28084).toFixed(6) + ' m';
+  document.getElementById('lengthResult').innerHTML = r;
+}
+function convertDate() {
+  const d1 = document.getElementById('date1').value;
+  const d2 = document.getElementById('date2').value;
+  let r = '';
+  if (d1 && d2) {
+    const dt1 = new Date(d1);
+    const dt2 = new Date(d2);
+    const diff = Math.abs(dt2 - dt1);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    r = days + ' days';
+  }
+  document.getElementById('dateResult').innerHTML = r;
+}
+// Conversion sub-tabs logic (date removed)
+const conversionSubtabs = [
+  'angle','pressure','data','power','time','speed','area','energy','temperature','weight','length'
+];
+function showSubtab(type) {
+  conversionSubtabs.forEach(t => {
+    const btn = document.getElementById('subtab-' + t);
+    if (btn) btn.classList.remove('active');
+  });
+  const btn = document.getElementById('subtab-' + type);
+  if (btn) btn.classList.add('active');
+  let html = '';
+  switch(type) {
+    case 'angle':
+      html = `<b>Angle Conversion</b><br><input type='number' id='angleInput' placeholder='Degrees' /> <select id='angleType'><option value='degToRad'>Degrees to Radians</option><option value='radToDeg'>Radians to Degrees</option></select> <button onclick='convertAngle()'>Convert</button><div id='angleResult'></div>`;
+      break;
+    case 'pressure':
+      html = `<b>Pressure Conversion</b><br><input type='number' id='pressureInput' placeholder='Value' /> <select id='pressureType'><option value='paToAtm'>Pa to Atm</option><option value='atmToPa'>Atm to Pa</option><option value='barToPsi'>Bar to Psi</option><option value='psiToBar'>Psi to Bar</option></select> <button onclick='convertPressure()'>Convert</button><div id='pressureResult'></div>`;
+      break;
+    case 'data':
+      html = `<b>Data Conversion</b><br><input type='number' id='dataInput' placeholder='Value' /> <select id='dataType'><option value='kbToMb'>KB to MB</option><option value='mbToGb'>MB to GB</option><option value='gbToTb'>GB to TB</option><option value='tbToGb'>TB to GB</option></select> <button onclick='convertData()'>Convert</button><div id='dataResult'></div>`;
+      break;
+    case 'power':
+      html = `<b>Power Conversion</b><br><input type='number' id='powerInput' placeholder='Value' /> <select id='powerType'><option value='wToKw'>Watt to kW</option><option value='kwToW'>kW to Watt</option></select> <button onclick='convertPower()'>Convert</button><div id='powerResult'></div>`;
+      break;
+    case 'time':
+      html = `<b>Time Conversion</b><br><input type='number' id='timeInput' placeholder='Value' /> <select id='timeType'><option value='secToMin'>Seconds to Minutes</option><option value='minToHr'>Minutes to Hours</option><option value='hrToDay'>Hours to Days</option></select> <button onclick='convertTime()'>Convert</button><div id='timeResult'></div>`;
+      break;
+    case 'speed':
+      html = `<b>Speed Conversion</b><br><input type='number' id='speedInput' placeholder='Value' /> <select id='speedType'><option value='msToKmh'>m/s to km/h</option><option value='kmhToMs'>km/h to m/s</option></select> <button onclick='convertSpeed()'>Convert</button><div id='speedResult'></div>`;
+      break;
+    case 'area':
+      html = `<b>Area Conversion</b><br><input type='number' id='areaInput' placeholder='Value' /> <select id='areaType'><option value='sqmToSqft'>m² to ft²</option><option value='sqftToSqm'>ft² to m²</option></select> <button onclick='convertArea()'>Convert</button><div id='areaResult'></div>`;
+      break;
+    case 'energy':
+      html = `<b>Energy Conversion</b><br><input type='number' id='energyInput' placeholder='Value' /> <select id='energyType'><option value='jToCal'>Joule to Calorie</option><option value='calToJ'>Calorie to Joule</option></select> <button onclick='convertEnergy()'>Convert</button><div id='energyResult'></div>`;
+      break;
+    case 'temperature':
+      html = `<b>Temperature Conversion</b><br><input type='number' id='tempInput' placeholder='Value' /> <select id='tempType'><option value='cToF'>Celsius to Fahrenheit</option><option value='fToC'>Fahrenheit to Celsius</option><option value='cToK'>Celsius to Kelvin</option><option value='kToC'>Kelvin to Celsius</option></select> <button onclick='convertTemperature()'>Convert</button><div id='tempResult'></div>`;
+      break;
+    case 'weight':
+      html = `<b>Weight & Mass Conversion</b><br><input type='number' id='weightInput' placeholder='Value' /> <select id='weightType'><option value='kgToLb'>Kg to Lb</option><option value='lbToKg'>Lb to Kg</option><option value='gToOz'>Gram to Ounce</option><option value='ozToG'>Ounce to Gram</option></select> <button onclick='convertWeight()'>Convert</button><div id='weightResult'></div>`;
+      break;
+    case 'length':
+      html = `<b>Length Conversion</b><br><input type='number' id='lengthInput' placeholder='Value' /> <select id='lengthType'><option value='cmToInch'>cm to inches</option><option value='inchToCm'>inches to cm</option><option value='mToFt'>m to ft</option><option value='ftToM'>ft to m</option></select> <button onclick='convertLength()'>Convert</button><div id='lengthResult'></div>`;
+      break;
+    default:
+      html = '<i>Select a conversion type above.</i>';
+  }
+  document.getElementById('subtabContent').innerHTML = html;
+}
+function convertProgrammer() {
+  const val = document.getElementById('progInput').value;
+  const type = document.getElementById('progType').value;
+  let dec = parseInt(val, 10);
+  if (isNaN(dec)) {
+    document.getElementById('progResult').innerHTML = 'Invalid input';
+    return;
+  }
+  let bin = dec.toString(2);
+  let oct = dec.toString(8);
+  let hex = dec.toString(16).toUpperCase();
+  let html = `<b>Decimal:</b> ${dec}<br><b>Binary:</b> ${bin}<br><b>Octal:</b> ${oct}<br><b>Hexadecimal:</b> ${hex}`;
+  document.getElementById('progResult').innerHTML = html;
+}
+
+// Graphing Calculator logic
+// Show default subtab on Conversion tab open
+const origOpenTab = window.openTab;
+window.openTab = function(tab) {
+  origOpenTab.call(this, tab);
+  if(tab === 'conversion') setTimeout(() => showSubtab('angle'), 0);
+}
+
+// Programmer Calculator logic
+function convertProgrammer() {
+  const val = document.getElementById('progInput').value;
+  const type = document.getElementById('progType').value;
+  let dec = parseInt(val, 10);
+  if (isNaN(dec)) {
+    document.getElementById('progResult').innerHTML = 'Invalid input';
+    return;
+  }
+  let bin = dec.toString(2);
+  let oct = dec.toString(8);
+  let hex = dec.toString(16).toUpperCase();
+  let html = `<b>Decimal:</b> ${dec}<br><b>Binary:</b> ${bin}<br><b>Octal:</b> ${oct}<br><b>Hexadecimal:</b> ${hex}`;
+  document.getElementById('progResult').innerHTML = html;
+}
+
+// Graphing Calculator logic
+function drawGraph() {
+  let expr = document.getElementById('graphExpr').value;
+  const multi = document.getElementById('multiGraph') && document.getElementById('multiGraph').checked;
+  let exprs = [expr];
+  if (multi && expr.includes(',')) exprs = expr.split(',').map(e => e.trim()).filter(e => e);
+  const canvas = document.getElementById('graphCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('graphError').textContent = '';
+  if (!expr) return;
+  // Draw grid if selected
+  const w = canvas.width, h = canvas.height;
+  const x0 = w/2, y0 = h/2;
+  const showGrid = document.getElementById('showGrid') && document.getElementById('showGrid').checked;
+  if (showGrid) {
+    ctx.save();
+    ctx.strokeStyle = '#eee';
+    ctx.lineWidth = 1;
+    for (let i = -6; i <= 6; i++) {
+      let x = x0 + i*30;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let i = -3; i <= 3; i++) {
+      let y = y0 - i*30;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Draw axes with ticks and labels
+  ctx.save();
+  ctx.strokeStyle = '#bbb';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  // x axis
+  ctx.moveTo(0, y0); ctx.lineTo(w, y0);
+  // y axis
+  ctx.moveTo(x0, 0); ctx.lineTo(x0, h);
+  ctx.stroke();
+  // Draw ticks and labels
+  ctx.font = '12px Arial';
+  ctx.fillStyle = '#333';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = -6; i <= 6; i++) {
+    let x = x0 + i*30;
+    ctx.beginPath();
+    ctx.moveTo(x, y0-5); ctx.lineTo(x, y0+5); ctx.stroke();
+    if (i !== 0) ctx.fillText(i, x, y0+8);
+  }
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = -3; i <= 3; i++) {
+    let y = y0 - i*30;
+    ctx.beginPath();
+    ctx.moveTo(x0-5, y); ctx.lineTo(x0+5, y); ctx.stroke();
+    if (i !== 0) ctx.fillText(i, x0-8, y);
+  }
+  // Axis labels
+  ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+  ctx.fillText('x', w-5, y0+8);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('y', x0+8, 5);
+  // Draw origin
+  ctx.beginPath();
+  ctx.arc(x0, y0, 4, 0, 2*Math.PI);
+  ctx.fillStyle = '#7c3aed';
+  ctx.fill();
+  ctx.restore();
+  // Plot function(s)
+  const colors = ['#7c3aed','#f59e42','#10b981','#ef4444','#3b82f6','#eab308'];
+  exprs.forEach((ex, idx) => {
+    ctx.save();
+    ctx.strokeStyle = colors[idx % colors.length];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let first = true;
+    for (let px = 0; px < w; px++) {
+      let x = (px - x0) / 30;
+      let y;
+      try {
+  // Only allow numbers, x, operators, parentheses, decimal points, and ^
+  let safeExpr = ex.replace(/x/g, '('+x+')').replace('^','**');
+  if (/[^0-9+\-*/().x ]/.test(ex)) throw new Error('Unsafe expression');
+  y = eval(safeExpr);
+      } catch {
+        document.getElementById('graphError').textContent = 'Invalid expression';
+        ctx.restore();
+        return;
+      }
+      let py = y0 - y*30;
+      if (first) { ctx.moveTo(px, py); first = false; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+  // Tax Exemptions dynamic list
+// --- Tax Checklist Fields ---
+const taxChecklistFields = [
+  { label: 'Full legal name', id: 'fullName', type: 'text' },
+  { label: 'Social Security Number (SSN) or Taxpayer Identification Number (TIN)', id: 'ssn', type: 'text' },
+  { label: 'Date of birth', id: 'dob', type: 'date' },
+  { label: 'Current mailing address', id: 'address', type: 'text' },
+  { label: 'Filing status', id: 'filingStatusChecklist', type: 'text' },
+  { label: 'Bank routing number', id: 'bankRouting', type: 'text' },
+  { label: 'Bank account number', id: 'bankAccount', type: 'text' },
+  { label: 'Account type (Checking/Savings)', id: 'accountType', type: 'text' },
+  { label: 'Would you like your refund applied to next year’s taxes?', id: 'refundNextYear', type: 'text' },
+  { label: 'Copy of prior year’s tax return', id: 'priorReturn', type: 'text' },
+  { label: 'Adjusted Gross Income (AGI) from prior year', id: 'agiPrior', type: 'text' },
+  { label: 'Carryover amounts (capital losses, unused credits, etc.)', id: 'carryover', type: 'text' },
+  // Add more fields as needed from the checklist
+];
+function showTaxChecklistPrompt() {
+  document.getElementById('taxChecklistPrompt').innerHTML =
+    `<button onclick="showTaxChecklistForm()">Fill US Tax Filing Checklist</button>`;
+}
+function showTaxChecklistForm() {
+  let html = '<h3>US Tax Filing Checklist</h3><form id="taxChecklistDetails">';
+  taxChecklistFields.forEach(f => {
+    html += `<label>${f.label}: <input type='${f.type}' id='${f.id}' name='${f.id}' /></label><br/>`;
+  });
+  html += `<button type='button' onclick='exportTaxChecklist("txt")'>Export as TXT</button> <button type='button' onclick='exportTaxChecklist("pdf")'>Export as PDF</button>`;
+  html += '</form>';
+  document.getElementById('taxChecklistForm').innerHTML = html;
+  document.getElementById('taxChecklistForm').style.display = '';
+}
+function exportTaxChecklist(type) {
+  let data = '';
+  taxChecklistFields.forEach(f => {
+    let val = document.getElementById(f.id).value;
+    data += `${f.label}: ${val}\n`;
+  });
+  if (type === 'txt') {
+    const blob = new Blob([data], {type: 'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'us_tax_checklist.txt';
+    a.click();
+  } else if (type === 'pdf') {
+    const win = window.open('', '', 'width=700,height=900');
+    win.document.write(`<pre style='font-size:16px;'>${data.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`);
+    win.document.close();
+    win.print();
+  }
+}
+  // General Text to Speech utility
+  function speakText(msg) {
+    if ('speechSynthesis' in window) {
+      const utter = new SpeechSynthesisUtterance(msg);
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.lang = 'en-US';
+      window.speechSynthesis.speak(utter);
+    }
+  }
+  // Text to Speech function
+  function speakWelcome() {
+    const msg = 'You are welcome to calculate with Solomon. Let the counting begin!';
+    if ('speechSynthesis' in window) {
+      const utter = new SpeechSynthesisUtterance(msg);
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.lang = 'en-US';
+      window.speechSynthesis.speak(utter);
+    } else {
+      alert('Sorry, your browser does not support text to speech.');
+    }
+  }
+  // Show login time
+  function showLoginTime() {
+    const now = new Date();
+    document.getElementById("loginTime").textContent =
+      "Login Time: " + now.toLocaleString();
+  }
+
+  // Tab switcher
+  function openTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+      tab.style.display = 'none';
+    });
+    document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+    const tab = document.getElementById(tabId);
+    tab.classList.add('active');
+    tab.style.display = 'block';
+    // Highlight the clicked tab button in purple
+    const btns = document.querySelectorAll('.tabs button');
+    btns.forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)) {
+        btn.classList.add('active');
+      }
+    });
+    if (tabId === 'history') renderHistory();
+  }
+
+  // Normal Calculator
+  function updateExpression() {
+    let inputs = document.querySelectorAll('#calcInputs input, #calcInputs select');
+    let expression = '';
+    for (let i = 0; i < inputs.length; i++) {
+      expression += inputs[i].value + ' ';
+    }
+    document.getElementById('expressionDisplay').textContent = "Expression: " + expression;
+  }
+
+  function addMore() {
+    let div = document.createElement('div');
+    div.innerHTML = `
+      <select onchange="updateExpression()">
+        <option>+</option><option>-</option><option>*</option><option>/</option>
+      </select>
+      <input type="number" onchange="updateExpression()" />`;
+    document.getElementById('calcInputs').appendChild(div);
+  }
+
+function calculateAmort() {
+    var loanAmount = parseFloat(document.getElementById('amortLoanAmount').value);
+    var monthlyPaymentInput = parseFloat(document.getElementById('amortMonthlyPayment').value);
+    var dueDate = document.getElementById('amortDueDate').value;
+    var termMonths = parseFloat(document.getElementById('amortTermMonths').value);
+    var interestRate = parseFloat(document.getElementById('amortInterestRate').value) / 100 / 12;
+    var resultDiv = document.getElementById('amortResult');
+    var breakdownDiv = document.getElementById('amortBreakdown');
+    breakdownDiv.style.display = 'none';
+    if (isNaN(loanAmount) || isNaN(termMonths) || isNaN(interestRate)) {
+        resultDiv.innerHTML = 'Please fill all required fields.';
+        return;
+    }
+    var monthlyPayment = monthlyPaymentInput;
+    if (isNaN(monthlyPayment) || monthlyPayment <= 0) {
+        // Calculate monthly payment if not provided
+        monthlyPayment = loanAmount * interestRate / (1 - Math.pow(1 + interestRate, -termMonths));
+    }
+    var totalPayment = monthlyPayment * termMonths;
+    var totalInterest = totalPayment - loanAmount;
+    var dueDateStr = dueDate ? ('<br>Due Date: ' + dueDate) : '';
+    resultDiv.innerHTML =
+        '<span style="color:#006400;font-weight:bold;">Monthly Payment: $' + monthlyPayment.toFixed(2) + '</span>' + dueDateStr;
+    // Show totals in a separate div for clarity
+    var totalsDiv = document.getElementById('amortTotals');
+    totalsDiv.innerHTML =
+        '<b>Total Payment:</b> $' + totalPayment.toFixed(2) + '<br>' +
+        '<b>Total Interest Paid:</b> $' + totalInterest.toFixed(2);
+    // Breakdown
+    var breakdown = '<b>Amortization Breakdown</b><br>';
+    breakdown += 'Loan Amount: $' + loanAmount.toFixed(2) + '<br>';
+    breakdown += 'Interest Rate (monthly): ' + (interestRate * 100).toFixed(4) + '%<br>';
+    breakdown += 'Terms: ' + termMonths + ' months<br>';
+    breakdown += 'Monthly Payment: $' + monthlyPayment.toFixed(2) + '<br>';
+    breakdown += 'Total Payment: $' + totalPayment.toFixed(2) + '<br>';
+    breakdown += 'Total Interest Paid: $' + totalInterest.toFixed(2) + '<br>';
+    if (dueDate) breakdown += 'Due Date: ' + dueDate + '<br>';
+    breakdownDiv.innerHTML = breakdown;
+    breakdownDiv.style.display = 'block';
+
+    // Show export options
+    var exportDiv = document.getElementById('amortExport');
+    exportDiv.style.display = '';
+    exportDiv.innerHTML = `<button onclick="exportAmort('txt')">Export as TXT</button><button onclick="exportAmort('pdf')">Export as PDF</button>`;
+// Export Amortization Result
+function exportAmort(type) {
+    var breakdown = document.getElementById('amortBreakdown').innerText;
+    var totals = document.getElementById('amortTotals').innerText;
+    var result = document.getElementById('amortResult').innerText;
+    var content = `${result}\n\n${totals}\n\n${breakdown}`;
+    if (type === 'txt') {
+        var blob = new Blob([content], {type: 'text/plain'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'amortization_result.txt';
+        a.click();
+    } else if (type === 'pdf') {
+        var win = window.open('', '', 'width=700,height=900');
+        win.document.write(`<pre style='font-size:16px;'>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`);
+        win.document.close();
+        win.print();
+    }
+}
+}
+  function sciBtn(val) {
+    const input = document.getElementById('sciInput');
+    if (val === 'pi') {
+      input.value += 'Math.PI';
+    } else if (val === 'e') {
+      input.value += 'Math.E';
+    } else if (val === '^') {
+      input.value += '^';
+    } else if (["sin(", "cos(", "tan(", "log(", "ln(", "sqrt(", "exp("] .includes(val)) {
+      if (val === 'log(') input.value += 'log10('; 
+      else if (val === 'ln(') input.value += 'Math.log('; 
+      else if (val === 'sin(') input.value += 'Math.sin('; 
+      else if (val === 'cos(') input.value += 'Math.cos('; 
+      else if (val === 'tan(') input.value += 'Math.tan('; 
+      else if (val === 'sqrt(') input.value += 'Math.sqrt('; 
+      else if (val === 'exp(') input.value += 'Math.exp('; 
+    } else {
+      input.value += val;
+    }
+  }
+
+  function clearSci() {
+    document.getElementById('sciInput').value = '';
+    document.getElementById('sciResult').textContent = '';
+  }
+
+  // Helper for log10
+  function log10(x) {
+    return Math.log10 ? Math.log10(x) : Math.log(x) / Math.LN10;
+  }
+
+  function calculateScientific() {
+    let input = document.getElementById("sciInput").value;
+    // Replace ^ with Math.pow
+    input = input.replace(/([\d\.]+)\^([\d\.]+)/g, 'Math.pow($1,$2)');
+    try {
+      let result = Function('"use strict";return (' + input + ')')();
+      document.getElementById("sciResult").textContent = "Result: " + result;
+      speakText("Result is " + result);
+    } catch (e) {
+      document.getElementById("sciResult").textContent = "Invalid Input";
+      speakText("Invalid Input");
+    }
+  }
+
+  // Tax Calculator
+  let customDeductionCount = 0;
+  function addCustomDeduction() {
+    const id = 'deduct_custom_' + (++customDeductionCount);
+    const div = document.createElement('div');
+    div.style.marginBottom = '4px';
+    div.innerHTML = `<input type='text' placeholder='Deduction name' id='${id}_name' style='width:54%;margin-right:2px;' /> <input type='number' id='${id}' placeholder='Amount' style='width:34%;' /> <button type='button' onclick='this.parentNode.remove()' title='Remove' style='color:red;font-weight:bold;'>×</button>`;
+    document.getElementById('deductionFields').appendChild(div);
+  }
+
+  function calculateTax() {
+    const income = parseFloat(document.getElementById("income").value) || 0;
+    const status = document.getElementById("filingStatus").value;
+    // Gather standard deductions
+    const deductions = [
+      parseFloat(document.getElementById('deduct_studentLoan').value) || 0,
+      parseFloat(document.getElementById('deduct_ira').value) || 0,
+      parseFloat(document.getElementById('deduct_hsa').value) || 0,
+      parseFloat(document.getElementById('deduct_selfHealth').value) || 0,
+      parseFloat(document.getElementById('deduct_education').value) || 0,
+      parseFloat(document.getElementById('deduct_mortgage').value) || 0,
+      parseFloat(document.getElementById('deduct_propertyTax').value) || 0,
+      parseFloat(document.getElementById('deduct_charity').value) || 0,
+      parseFloat(document.getElementById('deduct_medical').value) || 0,
+      parseFloat(document.getElementById('deduct_childcare').value) || 0
+    ];
+    // Gather custom deductions
+    const customDivs = document.querySelectorAll('#deductionFields > div');
+    let customDeductTotal = 0;
+    customDivs.forEach(div => {
+      const nameInput = div.querySelector('input[type="text"]');
+      const valInput = div.querySelector('input[type="number"]');
+      if (valInput && !isNaN(parseFloat(valInput.value))) {
+        customDeductTotal += parseFloat(valInput.value);
+      }
+    });
+    const totalDeduct = deductions.reduce((a, b) => a + b, 0) + customDeductTotal;
+    const taxable = Math.max(0, income - totalDeduct);
+    // 2025 US Federal Tax Brackets
+    const brackets = {
+      single: [
+        { upTo: 11925, rate: 0.10 },
+        { upTo: 48475, rate: 0.12 },
+        { upTo: 103350, rate: 0.22 },
+        { upTo: 197300, rate: 0.24 },
+        { upTo: 250525, rate: 0.32 },
+        { upTo: 626350, rate: 0.35 },
+        { upTo: Infinity, rate: 0.37 }
+      ],
+      married_joint: [
+        { upTo: 23850, rate: 0.10 },
+        { upTo: 96950, rate: 0.12 },
+        { upTo: 206700, rate: 0.22 },
+        { upTo: 394600, rate: 0.24 },
+        { upTo: 501050, rate: 0.32 },
+        { upTo: 751600, rate: 0.35 },
+        { upTo: Infinity, rate: 0.37 }
+      ],
+      married_separate: [
+        { upTo: 11925, rate: 0.10 },
+        { upTo: 48475, rate: 0.12 },
+        { upTo: 103350, rate: 0.22 },
+        { upTo: 197300, rate: 0.24 },
+        { upTo: 250525, rate: 0.32 },
+        { upTo: 626350, rate: 0.35 },
+        { upTo: Infinity, rate: 0.37 }
+      ],
+      head: [
+        { upTo: 17000, rate: 0.10 },
+        { upTo: 64850, rate: 0.12 },
+        { upTo: 103350, rate: 0.22 },
+        { upTo: 197300, rate: 0.24 },
+        { upTo: 250500, rate: 0.32 },
+        { upTo: 626350, rate: 0.35 },
+        { upTo: Infinity, rate: 0.37 }
+      ]
+    };
+    let result = 0, prev = 0, mathSteps = [];
+    for (let b of brackets[status]) {
+      if (taxable > prev) {
+        let amt = Math.min(taxable, b.upTo) - prev;
+        let t = amt * b.rate;
+        result += t;
+        mathSteps.push(`${amt.toFixed(2)} × ${(b.rate*100).toFixed(0)}% = ${t.toFixed(2)}`);
+        prev = b.upTo;
+      } else break;
+    }
+    // Show math breakdown
+    document.getElementById('taxMath').style.display = '';
+    document.getElementById('taxMath').innerHTML =
+      `<b>Income:</b> ${income.toFixed(2)}<br>` +
+      `<b>Total Deductions:</b> ${totalDeduct.toFixed(2)}<br>` +
+      `<br><b>Taxable Income:</b> ${taxable.toFixed(2)}<br><b>Tax Calculation:</b><br>` + mathSteps.join('<br>') +
+      `<br><b>Total Tax:</b> ${result.toFixed(2)}`;
+    // Show brackets    document.getElementById('taxBrackets').style.display = '';
+    let bracketHtml = `<b>Tax Brackets (${status.replace('_',' ').replace('head','Head of Household').replace('single','Single').replace('married joint','Married Filing Jointly').replace('married separate','Married Filing Separately')}):</b><br>`;
+    let bArr = brackets[status];
+    for (let i = 0; i < bArr.length; i++) {
+      let lower = i === 0 ? 0 : bArr[i-1].upTo+1;
+      let upper = bArr[i].upTo === Infinity ? 'and above' : bArr[i].upTo.toLocaleString();
+      bracketHtml += `${lower.toLocaleString()} - ${upper}: ${(bArr[i].rate*100).toFixed(0)}%<br>`;
+    }
+    document.getElementById('taxBrackets').innerHTML = bracketHtml;
+    // Show result
+    document.getElementById("taxResult").textContent = `Taxable Income: ${taxable.toFixed(2)} | Tax Due: ${result.toFixed(2)}`;
+    // Export options
+    document.getElementById('taxExport').style.display = '';
+    document.getElementById('taxExport').innerHTML =
+      `<button onclick="exportTax('txt')">Export as TXT</button><button onclick="exportTax('pdf')">Export as PDF</button>`;
+    speakText(`Taxable Income is ${taxable.toFixed(2)}. Tax Due is ${result.toFixed(2)}`);
+    // Prompt for checklist
+    setTimeout(() => {
+      document.getElementById('taxChecklistPrompt').innerHTML =
+        `<div style='margin-top:16px;'><b>Would you like to fill the US Tax Filing Checklist and Federal Tax Bracket form?</b><br><button onclick='showTaxChecklistForm()'>Yes, fill the form</button></div>`;
+    }, 500);
+  }
+  // Export Tax Result
+  function exportTax(type) {
+    const math = document.getElementById('taxMath').innerText;
+
+    const brackets = document.getElementById('taxBrackets').innerText;
+    const result = document.getElementById('taxResult').innerText;
+    const content = `${math}\n\n${brackets}\n\n${result}`;
+    if (type === 'txt') {
+      const blob = new Blob([content], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'tax_result.txt';
+      a.click();
+    } else if (type === 'pdf') {
+      // Simple PDF export using window.print()
+      const win = window.open('', '', 'width=700,height=900');
+      win.document.write(`<pre style='font-size:16px;'>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`);
+      win.document.close();
+      win.print();
+    }
+  }
+
+  // Amortization Calculator
+
+
+  // Spending Tracker
+  function trackSpending() {
+    const income = parseFloat(document.getElementById("earnings").value);
+    const items = document.getElementById("expenses").value.split(",");
+    let total = 0;
+    items.forEach(item => {
+      let val = parseFloat(item.trim());
+      if (!isNaN(val)) total += val;
+    });
+    const savings = income - total;
+    let advice = savings > 0 ? `You saved ${savings}` : `Overspent by ${-savings}`;
+    const msg = "Total Expenses: " + total + ". " + advice;
+    document.getElementById("spendResult").textContent = msg;
+    speakText(msg);
+  }
+
+  // Kids Mode
+  function runKidsMode() {
+    const op = document.getElementById("kidsOp").value;
+    const a = parseFloat(document.getElementById("kidsNum1").value);
+    const b = parseFloat(document.getElementById("kidsNum2").value);
+    let res = 0;
+    switch (op) {
+      case "add": res = a + b; break;
+      case "sub": res = a - b; break;
+      case "mul": res = a * b; break;
+      case "div": res = a / b; break;
+    }
+    const msg = `Answer is ${res}`;
+    document.getElementById("kidsResult").textContent = msg;
+    speakText(msg);
+    visualizeKidsResult(res);
+  }
+  function visualizeKidsResult(val) {
+    const canvas = document.getElementById('kidsCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (isNaN(val) || !isFinite(val) || val <= 0) {
+      canvas.style.display = 'none';
+      return;
+    }
+    canvas.style.display = 'block';
+    const shapes = ['circle','square','star'];
+    for (let i = 0; i < Math.min(20, Math.floor(val)); i++) {
+      const shape = shapes[Math.floor(Math.random()*shapes.length)];
+      const x = 30 + (i%10)*30;
+      const y = 40 + Math.floor(i/10)*60;
+      const color = `hsl(${Math.random()*360},90%,70%)`;
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 2;
+      if (shape === 'circle') {
+        ctx.beginPath(); ctx.arc(x, y, 13, 0, 2*Math.PI); ctx.fill(); ctx.stroke();
+      } else if (shape === 'square') {
+        ctx.beginPath(); ctx.rect(x-13, y-13, 26, 26); ctx.fill(); ctx.stroke();
+      } else if (shape === 'star') {
+        drawStar(ctx, x, y, 5, 13, 6);
+      }
+      ctx.restore();
+    }
+  }
+  function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    let step = Math.PI / spikes;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      x = cx + Math.cos(rot) * outerRadius;
+      y = cy + Math.sin(rot) * outerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      ctx.lineTo(x, y);
+      rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Converter
+  function convertMetric() {
+    const val = parseFloat(document.getElementById("metricInput").value);
+    const type = document.getElementById("metricType").value;
+    let result = 0;
+    switch (type) {
+      case "cmToInch": result = val / 2.54; break;
+      case "kgToLb": result = val * 2.20462; break;
+      case "lToGal": result = val / 3.78541; break;
+      case "ftToYd": result = val / 3; break;
+    }
+    const msg = "Converted: " + result.toFixed(2);
+    document.getElementById("metricResult").textContent = msg;
+    speakText(msg);
+  }
+
+  // Countdown Timer
+  let countdownInterval;
+  function startCountdown() {
+    let time = parseInt(document.getElementById("countMinutes").value) * 60;
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      if (time <= 0) {
+        clearInterval(countdownInterval);
+        alert("⏰ Time's up!");
+        document.getElementById("countdownDisplay").textContent = "";
+        speakText("Time's up!");
+      } else {
+        document.getElementById("countdownDisplay").textContent = `${Math.floor(time / 60)}m ${time % 60}s`;
+        time--;
+      }
+    }, 1000);
+  }
+
+  // Remove previous animated backgrounds
+  function removeAnimatedBg() {
+    document.querySelectorAll('.water-waves').forEach(el => el.remove());
+  }
+
+  // Theme changer: only light, dark, and water animated
+  function changeTheme(theme) {
+    document.body.className = '';
+    removeAnimatedBg();
+    switch(theme) {
+      case 'default':
+        document.body.classList.add('default-theme');
+        break;
+      case 'dark':
+        document.body.classList.add('dark-theme');
+        break;
+      case 'water':
+        document.body.classList.add('water-theme');
+        let waterDiv = document.createElement('div');
+        waterDiv.className = 'water-waves';
+        waterDiv.innerHTML = `
+          <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2196f3"/>
+                <stop offset="100%" stop-color="#0d47a1"/>
+              </linearGradient>
+            </defs>
+            <path id="wave1" fill="url(#waterGrad)" fill-opacity="0.7" d="M0,160 C360,240 1080,80 1440,160 L1440,320 L0,320 Z">
+              <animate attributeName="d" dur="6s" repeatCount="indefinite"
+                values="M0,160 C360,240 1080,80 1440,160 L1440,320 L0,320 Z;
+                        M0,180 C400,120 1040,200 1440,180 L1440,320 L0,320 Z;
+                        M0,160 C360,240 1080,80 1440,160 L1440,320 L0,320 Z"/>
+            </path>
+            <path id="wave2" fill="url(#waterGrad)" fill-opacity="0.4" d="M0,200 C480,320 960,0 1440,200 L1440,320 L0,320 Z">
+              <animate attributeName="d" dur="8s" repeatCount="indefinite"
+                values="M0,200 C480,320 960,0 1440,200 L1440,320 L0,320 Z;
+                        M0,220 C500,100 940,320 1440,220 L1440,320 L0,320 Z;
+                        M0,200 C480,320 960,0 1440,200 L1440,320 L0,320 Z"/>
+            </path>
+          </svg>
+        `;
+        document.body.appendChild(waterDiv);
+        break;
+    }
+  }
+
+  function addEarningRow() {
+    const table = document.getElementById('earningsTable').querySelector('tbody');
+    const row = document.createElement('tr');
+    const idx = table.children.length + 1;
+    row.innerHTML = `<td>${idx}</td><td><input type='text' placeholder='Name' style='width:80px;border-radius:4px;border:1px solid #b2ebf2;padding:2px 4px;'/></td><td><input type='number' placeholder='Amount' style='width:70px;border-radius:4px;border:1px solid #b2ebf2;padding:2px 4px;'/></td><td><button onclick='this.parentNode.parentNode.remove();updateTableNumbers("earningsTable");' style='color:red;font-weight:bold;background:none;border:none;cursor:pointer;'>×</button></td>`;
+    table.appendChild(row);
+  }
+  function addSpendingRow() {
+    const table = document.getElementById('spendingsTable').querySelector('tbody');
+    const row = document.createElement('tr');
+    const idx = table.children.length + 1;
+    row.innerHTML = `<td>${idx}</td><td><input type='text' placeholder='Name' style='width:80px;border-radius:4px;border:1px solid #ffe0b2;padding:2px 4px;'/></td><td><input type='number' placeholder='Amount' style='width:70px;border-radius:4px;border:1px solid #ffe0b2;padding:2px 4px;'/></td><td><button onclick='this.parentNode.parentNode.remove();updateTableNumbers("spendingsTable");' style='color:red;font-weight:bold;background:none;border:none;cursor:pointer;'>×</button></td>`;
+    table.appendChild(row);
+  }
+  function updateTableNumbers(tableId) {
+    const table = document.getElementById(tableId).querySelector('tbody');
+    Array.from(table.children).forEach((row, i) => {
+      row.children[0].textContent = i + 1;
+    });
+  }
+  function calculateEarningsSpendings() {
+    let earnings = 0, spendings = 0;
+    const earnRows = document.getElementById('earningsTable').querySelectorAll('tbody tr');
+    earnRows.forEach(row => {
+      const val = parseFloat(row.children[2].querySelector('input').value);
+      if (!isNaN(val)) earnings += val;
+    });
+    const spendRows = document.getElementById('spendingsTable').querySelectorAll('tbody tr');
+    spendRows.forEach(row => {
+      const val = parseFloat(row.children[2].querySelector('input').value);
+      if (!isNaN(val)) spendings += val;
+    });
+    const resultDiv = document.getElementById('earnSpendResult');
+    if (earnings > spendings) {
+      resultDiv.innerHTML = `<span style='color:#10b981;'>Congratulations, you made a gain of $${(earnings-spendings).toFixed(2)}</span>`;
+    } else if (spendings > earnings) {
+      resultDiv.innerHTML = `<span style='color:#ef4444;'>Great job, you have an outstanding of $${(spendings-earnings).toFixed(2)}</span>`;
+    } else {
+      resultDiv.innerHTML = `<span style='color:#7c3aed;'>Your earnings and spendings are equal.</span>`;
+    }
+  }
+  // Auto-add one row to each table on load
+  if (document.getElementById('earningsTable')) addEarningRow();
+  if (document.getElementById('spendingsTable')) addSpendingRow();
+
+// --- Currency Converter ---
+const currencyList = ["USD","EUR","GBP","JPY","CAD","AUD","NGN","ZAR","INR","CNY","BRL","KES"];
+function populateCurrencyDropdowns() {
+  const from = document.getElementById('currencyFrom');
+  const to = document.getElementById('currencyTo');
+  from.innerHTML = to.innerHTML = currencyList.map(c => `<option value='${c}'>${c}</option>`).join('');
+  from.value = 'USD';
+  to.value = 'NGN';
+}
+async function convertCurrency() {
+  const statusDiv = document.getElementById('currencyStatus');
+  statusDiv.style.display = 'none';
+  if (!navigator.onLine) {
+    statusDiv.textContent = 'No internet connection. Live rates unavailable.';
+    statusDiv.style.display = 'block';
+    document.getElementById('currencyResult').textContent = '';
+    return;
+  }
+  const amount = parseFloat(document.getElementById('currencyAmount').value);
+  const from = document.getElementById('currencyFrom').value;
+  const to = document.getElementById('currencyTo').value;
+  if (isNaN(amount) || amount <= 0) {
+    document.getElementById('currencyResult').textContent = 'Enter a valid amount.';
+    return;
+  }
+  try {
+    const resp = await fetch(`https://api.exchangerate.host/latest?base=${from}&symbols=${to}`);
+    if (!resp.ok) throw new Error('Network error');
+    const data = await resp.json();
+    if (!data || !data.rates || !data.rates[to]) throw new Error('No rate');
+    const rate = data.rates[to];
+    const result = amount * rate;
+    document.getElementById('currencyResult').textContent = `${amount} ${from} = ${result.toFixed(2)} ${to}`;
+  } catch (e) {
+    document.getElementById('currencyResult').textContent = 'Could not fetch live rates. Please try again later.';
+    statusDiv.textContent = 'Error: ' + (e.message || 'Could not fetch live rates.');
+    statusDiv.style.display = 'block';
+  }
+}
+if (document.getElementById('currencyFrom')) populateCurrencyDropdowns();
+
+// --- Notebook ---
+function saveNotebook() {
+  const val = document.getElementById('notebookArea').value;
+  localStorage.setItem('solomonamadi_notebook', val);
+  document.getElementById('notebookSaved').style.display = '';
+  setTimeout(()=>{document.getElementById('notebookSaved').style.display='none';}, 1500);
+}
+function clearNotebook() {
+  document.getElementById('notebookArea').value = '';
+  localStorage.removeItem('solomonamadi_notebook');
+  document.getElementById('notebookSaved').style.display = 'none';
+}
+function exportNotebookTXT() {
+  const text = document.getElementById('notebookArea').value;
+  const blob = new Blob([text], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'notebook.txt';
+  a.click();
+}
+function exportNotebookPDF() {
+  const text = document.getElementById('notebookArea').value;
+  const win = window.open('', '', 'width=700,height=900');
+  win.document.write('<html><head><title>Notebook PDF</title></head><body style="font-family:sans-serif;padding:30px;">');
+  win.document.write('<h2 style="color:#388e3c;">Notebook</h2>');
+  win.document.write('<pre style="font-size:16px;color:#33691e;">' + text.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])) + '</pre>');
+  win.document.write('</body></html>');
+  win.document.close();
+  win.print();
+}
+if (document.getElementById('notebookArea')) {
+  const saved = localStorage.getItem('solomonamadi_notebook');
+  if (saved) document.getElementById('notebookArea').value = saved;
+}
+</script>
+</body>
+</html>
